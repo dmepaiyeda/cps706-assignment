@@ -30,20 +30,24 @@ import java.util.StringTokenizer;
 public class DNS {
 
 	private int port;
+	private DNSDatabase db;
 
+	/**
+	 * @param port The port to listen for requests from
+	 * @param filename The name of the database file
+	 * @throws FileNotFoundException If there was a problem with the given filename
+	 */
 	public DNS(int port, String filename) throws FileNotFoundException {
 		this.port = port;
-		this.verifyFile(filename);
-
+		this.db = this.populatedDatabaseFromFile(filename);
 	}
 
-	private void verifyFile(String filename) throws FileNotFoundException {
-		File db = new File(filename);
-		Scanner sc = new Scanner(db);
-		this.populateDatabase(sc);
-	}
-
-	private DNSDatabase populateDatabase(Scanner sc) {
+	/**
+	 * @param filename the name of the database file
+	 * @return The populated DNSDatabase
+	 */
+	private DNSDatabase populatedDatabaseFromFile(String filename) throws FileNotFoundException {
+		Scanner sc = new Scanner(new File(filename));
 		DNSDatabase db = new DNSDatabase();
 		while(sc.hasNext()) {
 			String line = sc.nextLine();
