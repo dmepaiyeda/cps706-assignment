@@ -55,7 +55,7 @@ public class Client {
 
 		Socket socket = new Socket(host, destPort);
 		Scanner scanner = new Scanner(socket.getInputStream());
-		scanner.useDelimiter("\r\n");
+		scanner.useDelimiter(PROTOCOL_DELIM);
 
 		socket.getOutputStream().write(("get " + uri.getPath()).getBytes());
 

@@ -1,7 +1,5 @@
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Created by Frank on 2016-11-27.
@@ -9,8 +7,8 @@ import java.net.URL;
 public class Main {
 	public static final String LOCAL_DNS_IP = "localhost";
 	public static final int
-		WEB_PORT = 80,
-		DNS_PORT = 80;
+		WEB_PORT = 8080,
+		DNS_PORT = 5353;
 	private static final String
 		COMMAND_CLIENT = "client",
 		COMMAND_WEB = "web",
@@ -18,7 +16,7 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, URISyntaxException {
 
-		switch(args[0]) {
+		switch(args[0].toLowerCase()) {
 			case COMMAND_CLIENT:
 				runClient(Integer.parseInt(args[1]));
 				break;
