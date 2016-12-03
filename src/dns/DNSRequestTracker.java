@@ -32,12 +32,12 @@ public class DNSRequestTracker {
 	 * @param to the url key to change the original request to
 	 * @return The DNS request.
 	 */
-	public DNSRequest updateEntry(String from, String to) {
+	public DNSRequest updateRequest(String from, String to) {
 		DNSRequest dnsRequest = db.remove(from);
 		return db.put(to, dnsRequest);
 	}
 
-	public DNSRequest addEntry(String url, DNSRequest dnsRequest) {
+	public DNSRequest addRequest(String url, DNSRequest dnsRequest) {
 		return db.put(url, dnsRequest);
 	}
 }

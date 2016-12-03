@@ -4,7 +4,6 @@ import dns.db.DBEntry;
 import dns.db.DNSDatabase;
 import dns.protocol.DNSRequest;
 import dns.protocol.DNSResponse;
-import dns.protocol.DNSType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,6 +44,7 @@ public class DNS {
 	private int port;
 	private DNSDatabase db;
 	private DatagramSocket datagramSocket;
+	private DNSRequestTracker dnsRequestTracker;
 
 	/**
 	 * @param port The port to listen for requests from
@@ -52,6 +52,7 @@ public class DNS {
 	 * @throws FileNotFoundException If there was a problem with the given filename
 	 */
 	public DNS(int port, String filename) throws FileNotFoundException {
+		this.dnsRequestTracker = new DNSRequestTracker();
 		this.port = port;
 		this.db = this.populatedDatabaseFromFile(filename);
 	}
@@ -100,11 +101,11 @@ public class DNS {
 			switch (this.determinedReceivedPacketTypeFrom(data)) {
 				case DNS_REQUEST:
 					System.out.println(" -> recognized as dns request, handling...");
-					this.handleRequest(new DNSRequest(data, receivePacket.getAddress(), receivePacket.getPort()));
+					this.handleReceivedRequest(new DNSRequest(data, receivePacket.getAddress(), receivePacket.getPort()));
 					break;
 				case DNS_RESPONSE:
 					System.out.println(" -> recognized as dns response, handling...");
-					this.handleResponse(new DNSResponse(data));
+					this.handleReceivedResponse(new DNSResponse(data));
 					break;
 				default:
 					System.out.println("Malformed DNS recognized, doing nothing.");
@@ -135,19 +136,23 @@ public class DNS {
 		}
 	}
 
-	private void handleRequest(DNSRequest request) {
+	private void handleReceivedRequest(DNSRequest request) {
 
 		final String requestURL = request.getUrl();
 		DBEntry dnsRecord = db.findEntry(requestURL);
 
 		if(dnsRecord != null) { //the record exists in the database, so we'll return that
+			System.out.println("Record found for url, sending it back to sender.");
 			this.respondToRequest(request, dnsRecord);
-			return;
 		} else { //the record does not exist in the database, maybe we have a NS record for root hostname?
 			DBEntry nsRecordForRequest = this.getNameServerRecordForUrl(requestURL);
 			if(nsRecordForRequest == null) { //well, we've run out of options, guess we'll just return a NONE record.
+				System.out.print("No record found, and no NS record found for authoritative DNS server for root host.");
+				System.out.println(" returning NONE response");
 				this.sendNoneResponse(request);
 			} else { //hey, we got something, lets recursively query now.
+				System.out.println("NS record for root host found.");
+				this.startRecursiveQuery(request, nsRecordForRequest);
 			}
 		}
 	}
@@ -199,7 +204,30 @@ public class DNS {
 		}
 	}
 
-	private void handleResponse(DNSResponse response) {
+	private void startRecursiveQuery(DNSRequest request, DBEntry nsRecordForRequest) {
+		System.out.println("Starting recursive query.");
+		this.dnsRequestTracker.addRequest(request.getUrl(), request);
+		// request video.hiscinema.com -> hiscinema.com:9001
+		try {
+			DatagramPacket recursiveRequestPacket = new DatagramPacket(
+					request.packetFormattedRequest(),
+					request.packetFormattedRequest().length,
+					InetAddress.getByName(nsRecordForRequest.getEntry()),
+					this.port //assuming all mock dns servers use the same port.
+			);
+			try {
+				this.datagramSocket.send(recursiveRequestPacket);
+				System.out.printf("Sent recursive query %s to %s:%d\n", new String(request.packetFormattedRequest()), nsRecordForRequest.getEntry(), this.port);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void handleReceivedResponse(DNSResponse response) {
 	}
 
 }

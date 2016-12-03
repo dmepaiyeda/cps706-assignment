@@ -13,6 +13,12 @@ public class DNSRequest extends DNSType {
 	private final InetAddress senderIP;
 	private final int senderPort;
 
+	public DNSRequest(String url, InetAddress senderIP, int senderPort) {
+		this.url = url;
+		this.senderIP = senderIP;
+		this.senderPort = senderPort;
+	}
+
 	public DNSRequest(String[] requestData, InetAddress senderIP, int senderPort) {
 		this.url = requestData[1];
 		this.senderIP = senderIP;
@@ -29,6 +35,11 @@ public class DNSRequest extends DNSType {
 
 	public int getSenderPort() {
 		return this.senderPort;
+	}
+
+	public byte[] packetFormattedRequest() {
+		String response = "request " + url;
+		return response.getBytes();
 	}
 
 }
