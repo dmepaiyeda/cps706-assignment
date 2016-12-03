@@ -165,11 +165,7 @@ public class DNS {
 				dnsResponseData.length,
 				request.getSenderIP(),
 				request.getSenderPort());
-		try {
-			this.datagramSocket.send(responsePacket);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		this.sendPacket(responsePacket);
 	}
 
 	private boolean sendNoneResponse(DNSRequest request) {
@@ -180,13 +176,7 @@ public class DNS {
 				request.getSenderIP(),
 				request.getSenderPort()
 		);
-		try {
-			this.datagramSocket.send(nonePacket);
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return false;
+		return this.sendPacket(nonePacket);
 	}
 
 	private DBEntry getNameServerRecordForUrl(String url) {
@@ -215,12 +205,7 @@ public class DNS {
 					InetAddress.getByName(nsRecordForRequest.getEntry()),
 					this.port //assuming all mock dns servers use the same port.
 			);
-			try {
-				this.datagramSocket.send(recursiveRequestPacket);
-				System.out.printf("Sent recursive query %s to %s:%d\n", new String(request.packetFormattedRequest()), nsRecordForRequest.getEntry(), this.port);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			this.sendPacket(recursiveRequestPacket);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
@@ -228,6 +213,17 @@ public class DNS {
 	}
 
 	private void handleReceivedResponse(DNSResponse response) {
+	}
+
+
+	private boolean sendPacket(DatagramPacket packet) {
+		try {
+			this.datagramSocket.send(packet);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 }
