@@ -18,4 +18,9 @@ public class DNSDatabase {
 	public DBEntry addEntry(String url, String type, String entry) {
 		return db.put(url, new DBEntry(url, type, entry));
 	}
+
+	public DBEntry findEntry(String url) {
+		return db.getOrDefault(url.toLowerCase(), new DBEntry("", "", ""));
+	}
+
 }

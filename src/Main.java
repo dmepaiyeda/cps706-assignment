@@ -1,4 +1,8 @@
+import dns.DNS;
+
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 
 /**
@@ -24,7 +28,7 @@ public class Main {
 				System.out.println("NOT IMPLEMENTED YET");
 				break;
 			case COMMAND_DNS:
-				System.out.println("NOT IMPLEMENTED YET");
+				runDNS(Integer.parseInt(args[1]), args[2]);
 				break;
 			default:
 				System.out.println("WRONG! Ussage: app <client|dns|server> <port> [configFile]");
@@ -35,4 +39,19 @@ public class Main {
 		Client client = new Client(myUdpPort, WEB_PORT, DNS_PORT, LOCAL_DNS_IP);
 		client.run(System.in, System.out);
 	}
+
+	private static void runDNS(int port, String databaseFile) {
+		System.out.println("DNS selected.");
+		try {
+			DNS dns = new DNS(port, databaseFile);
+			System.out.println("DNS object created successfully.");
+			dns.openConnection();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (SocketException e) {
+			System.out.print("SocketException: ");
+			e.printStackTrace();
+		}
+	}
+
 }
