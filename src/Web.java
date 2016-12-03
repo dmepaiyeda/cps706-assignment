@@ -1,6 +1,7 @@
 import com.oracle.tools.packager.IOUtils;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -29,7 +30,7 @@ public class Web {
 		final PrintWriter writer = new PrintWriter(msgOut);
 		ServerSocket sSocket;
 
-		writer.println("Starting up server...");
+		writer.printf("Starting up server with content: %s\n", Arrays.toString(FILES));
 		writer.flush();
 		try {
 			sSocket = new ServerSocket(LOCAL_PORT);
@@ -39,7 +40,7 @@ public class Web {
 			return;
 
 		}
-		writer.printf("Server started on port %d\n", LOCAL_PORT);
+		writer.printf("Server started on port %d.\n", LOCAL_PORT);
 		writer.flush();
 
 		while(true) {
@@ -70,11 +71,14 @@ public class Web {
 					writer.printf("404 - Requested file: %s\n", filename);
 					out.write((""+STATUS_NOT_FOUND).getBytes());
 				}
-				writer.flush();
 				out.flush();
+				out.close();
 			} catch (IOException e) {
+				e.printStackTrace(writer);
 				writer.println("ERROR - There was an error writing to a connection.");
 			}
+
+			writer.flush();
 
 			// Doesent matter if it works or not... no way to fix it
 			try {socket.close();} catch(IOException ignored) {}
@@ -92,6 +96,7 @@ public class Web {
 		if (filename.startsWith("/")) filename = filename.substring(1);
 		FileInputStream fOs = new FileInputStream(new File(filename));
 		pipe(fOs, out);
+		out.flush();
 		fOs.close();
 	}
 
