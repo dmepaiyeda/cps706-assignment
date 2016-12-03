@@ -1,7 +1,10 @@
+import dns.DNS;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -37,7 +40,7 @@ public class Main {
 				runWeb(Integer.parseInt(args[1]), Arrays.copyOfRange(args, 2, args.length));
 				break;
 			case COMMAND_DNS:
-				System.out.println("NOT IMPLEMENTED YET");
+				runDNS(Integer.parseInt(args[1]), args[2]);
 				break;
 			default:
 				System.out.println("WRONG! Ussage: app <client|dns|server> <port> [configFile]");
@@ -65,6 +68,20 @@ public class Main {
 	private static void runClient(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
 		Client client = new Client(myUdpPort, webPort, dnsPort, localDnsIp);
 		client.run(System.in, System.out);
+	}
+
+	private static void runDNS(int port, String databaseFile) {
+		System.out.println("DNS selected.");
+		try {
+			DNS dns = new DNS(port, databaseFile);
+			System.out.println("DNS object created successfully.");
+			dns.openConnection();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (SocketException e) {
+			System.out.print("SocketException: ");
+			e.printStackTrace();
+		}
 	}
 
 	private static void runWeb(int port, String...files) throws IOException {
