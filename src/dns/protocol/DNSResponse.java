@@ -57,6 +57,6 @@ public class DNSResponse extends DNSType {
 	}
 
 	public String getEntry() {
-		return this.getEntry();
+		return this.entry;
 	}
 }
