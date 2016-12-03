@@ -91,6 +91,7 @@ public class DNS {
 			}
 
 			this.handleReceivedPacket(receivePacket);
+			System.out.println();
 
 		}
 	}
@@ -217,9 +218,11 @@ public class DNS {
 		if(this.dnsRequestTracker.containsRequest(response.getUrl())) {
 			switch (response.getType()) {
 				case "A":
+					System.out.println("Got A record back from recursive query, forwarding it;");
 					forwardResponse(dnsRequestTracker.getRequest(response.getUrl()), response);
 					break;
 				case "CNAME":
+					System.out.println("Got CNAME record back from recursive query, resolving it.");
 					this.resolveCNAME(dnsRequestTracker.getRequest(response.getUrl()), response);
 					break;
 			}
@@ -239,8 +242,22 @@ public class DNS {
 		this.dnsRequestTracker.removeRequest(response.getUrl());
 	}
 
+	/**
+	 * If a CNAME record is returned from the recursive NS query, then we will make another recursive query,
+	 * a the current tracked request will be removed, and replaced with the new url, but with the request intact
+	 * so that the ip can be sent to the original sender.
+	 *
+	 * @param request
+	 * @param response
+	 */
 	private void resolveCNAME(DNSRequest request, DNSResponse response) {
-
+		this.dnsRequestTracker.removeRequest(response.getUrl());
+		DBEntry nsRecord = this.getNameServerRecordForUrl(response.getUrl());
+		if(nsRecord == null) {
+			this.sendNoneResponse(request);
+		} else {
+			this.startRecursiveQuery(request, nsRecord);
+		}
 	}
 
 
