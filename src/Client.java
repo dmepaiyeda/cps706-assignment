@@ -16,6 +16,9 @@ public class Client {
 
 	private static final String MESSAGE_PROMPT_URL = "Url: ";
 	private static final String MESSAGE_404 = "404 - Not Found.";
+	private static final String MESSAGE_CANT_CONNECT = "ERROR - Could not connect to server.";
+	private static final String MESSAGE_CANT_RESOLVE = "ERROR - Could not resolve url.";
+	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
 	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
 
 	public Client(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
@@ -34,39 +37,57 @@ public class Client {
 			String url = in.next();
 			try {
 				out.println(get(url));
-			} catch (IOException e) {
+			} catch (NotImplementedException e) {
+				out.println("Dns lookup not yet implemented...");
+			} catch (Exception e) {
 				out.println(e.getMessage());
 			}
 			out.flush();
 		}
 	}
 
-	public String get(String url) throws IOException {
+	public String get(String url) {
 		URI uri;
 		try {
 			uri = new URI(url.startsWith("http://") ? url : "http://" + url);
 		} catch(URISyntaxException e) {
-			throw new IllegalStateException("Invalid url provided.");
+			throw new IllegalStateException(MESSAGE_INVALID_URL);
 		}
 		int destPort = uri.getPort() != -1 ? uri.getPort() : WEB_PORT;
 		String host = uri.getHost();
 
 		if (!isIp(host)) {
-			// need to resolve this via dns
-			host = dnsLookup(host);
+			// Lookup via dns
+			try {
+				host = dnsLookup(host);
+			} catch (SocketException e) {
+				throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
+			}
 		}
 
-		Socket socket = new Socket(host, destPort);
-		Scanner scanner = new Scanner(socket.getInputStream());
-		scanner.useDelimiter(Web.PROTOCOL_DELIM);
+		Socket socket;
+		Scanner scanner;
+		OutputStream cOut;
 
-		OutputStream cOut = socket.getOutputStream();
+		try {
+			socket = new Socket(host, destPort);
+			scanner = new Scanner(socket.getInputStream());
+			cOut = socket.getOutputStream();
+		} catch (Exception e) {
+			throw new IllegalStateException(MESSAGE_CANT_CONNECT);
+		}
+
+		scanner.useDelimiter(Web.PROTOCOL_DELIM);
 
 		String path = uri.getPath();
 		if (path.isEmpty()) path = "/";
 
-		cOut.write(path.getBytes());
-		cOut.write(Web.PROTOCOL_DELIM.getBytes());
+		try {
+			cOut.write(path.getBytes());
+			cOut.write(Web.PROTOCOL_DELIM.getBytes());
+		} catch (IOException e) {
+			throw new IllegalStateException(MESSAGE_CANT_CONNECT);
+		}
 
 		int code = Integer.parseInt(scanner.next());
 		switch (code) {

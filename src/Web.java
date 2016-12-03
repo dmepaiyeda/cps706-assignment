@@ -52,8 +52,7 @@ public class Web {
 				in = new Scanner(new BufferedInputStream(socket.getInputStream()));
 				out = socket.getOutputStream();
 			} catch (IOException e) {
-				e.printStackTrace();
-				// TODO with grace
+				writer.printf("ERROR - Could not accept the connection.\n");
 				return;
 			}
 
@@ -75,8 +74,7 @@ public class Web {
 				out.write(PROTOCOL_DELIM.getBytes());
 				out.flush();
 			} catch (IOException e) {
-				// TODO with grace
-				e.printStackTrace();
+				writer.println("ERROR - There was an error writing to a connection.");
 			}
 
 			// Doesent matter if it works or not... no way to fix it
