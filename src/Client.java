@@ -2,7 +2,6 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -14,7 +13,10 @@ public class Client {
 	public final int DNS_PORT;
 	public final int MY_DNS_PORT;
 	public final String LOCAL_DNS_IP;
-	public final String PROTOCOL_DELIM = "\r\n\r\n";
+
+	private static final String MESSAGE_PROMPT_URL = "Url: ";
+	private static final String MESSAGE_404 = "404 - Not Found.";
+	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
 
 	public Client(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
 		WEB_PORT = webPort;
@@ -28,13 +30,14 @@ public class Client {
 		Scanner in = new Scanner(inputStream);
 		PrintStream out = new PrintStream(outputStream);
 		while(true) {
-			out.print("Url: ");
+			out.print(MESSAGE_PROMPT_URL);
 			String url = in.next();
 			try {
 				out.println(get(url));
 			} catch (IOException e) {
 				out.println(e.getMessage());
 			}
+			out.flush();
 		}
 	}
 
@@ -55,15 +58,28 @@ public class Client {
 
 		Socket socket = new Socket(host, destPort);
 		Scanner scanner = new Scanner(socket.getInputStream());
-		scanner.useDelimiter(PROTOCOL_DELIM);
+		scanner.useDelimiter(Web.PROTOCOL_DELIM);
 
-		socket.getOutputStream().write(("get " + uri.getPath()).getBytes());
+		OutputStream cOut = socket.getOutputStream();
 
-		return scanner.next();
+		String path = uri.getPath();
+		if (path.isEmpty()) path = "/";
+
+		cOut.write(path.getBytes());
+		cOut.write(Web.PROTOCOL_DELIM.getBytes());
+
+		int code = Integer.parseInt(scanner.next());
+		switch (code) {
+			case Web.STATUS_OK: return scanner.next();
+			case Web.STATUS_NOT_FOUND: return MESSAGE_404;
+			default: return MESSAGE_UNKNOWN_ERROR;
+		}
+
 	}
 
 	// todo: resolve urls to ips
 	public String dnsLookup(String url) throws SocketException {
+		if (url.equals("localhost")) return url;
 		throw new NotImplementedException();
 	}
 
