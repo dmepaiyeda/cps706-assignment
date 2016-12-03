@@ -4,6 +4,7 @@ import dns.db.DBEntry;
 import dns.db.DNSDatabase;
 import dns.protocol.DNSRequest;
 import dns.protocol.DNSResponse;
+import dns.protocol.DNSType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -135,11 +136,19 @@ public class DNS {
 	}
 
 	private void handleRequest(DNSRequest request) {
-		DBEntry dnsRecord = db.findEntry(request.getUrl());
-		if(dnsRecord != null) {
+
+		final String requestURL = request.getUrl();
+		DBEntry dnsRecord = db.findEntry(requestURL);
+
+		if(dnsRecord != null) { //the record exists in the database, so we'll return that
 			this.respondToRequest(request, dnsRecord);
 			return;
-		} else {
+		} else { //the record does not exist in the database, maybe we have a NS record for root hostname?
+			DBEntry nsRecordForRequest = this.getNameServerRecordForUrl(requestURL);
+			if(nsRecordForRequest == null) { //well, we've run out of options, guess we'll just return a NONE record.
+				this.sendNoneResponse(request);
+			} else { //hey, we got something, lets recursively query now.
+			}
 		}
 	}
 
@@ -158,28 +167,39 @@ public class DNS {
 		}
 	}
 
-	private void handleResponse(DNSResponse response) {
-	}
-
-	public String resolveURL(String url, DatagramSocket socket) {
-		DBEntry dbEntry = this.db.findEntry(url);
-		if(dbEntry != null) { //the url is not in the database
+	private boolean sendNoneResponse(DNSRequest request) {
+		DNSResponse noneResponse = DNSResponse.NoneDNSResponse(request.getUrl());
+		DatagramPacket nonePacket = new DatagramPacket(
+				noneResponse.packetFormattedResponse(),
+				noneResponse.packetFormattedResponse().length,
+				request.getSenderIP(),
+				request.getSenderPort()
+		);
+		try {
+			this.datagramSocket.send(nonePacket);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		getHostNameFromString(url);
-		return null;
+		return false;
 	}
 
-	public String getHostNameFromString(String hostname) {
-		System.out.print(hostname + " -> ");
+	private DBEntry getNameServerRecordForUrl(String url) {
+		return db.findEntry(getHostNameFromString(url));
+	}
+
+	private String getHostNameFromString(String hostname) {
 		String[] parts = hostname.split("\\.");
-		System.out.println(Arrays.toString(parts));
 		if(parts.length > 2) {
 			return parts[parts.length-2] + "." + parts[parts.length-1];
 		} else if(parts.length == 2) {
 			return parts[parts.length-2] + "." + parts[parts.length-1];
 		} else {
-			return "none none";
+			return null;
 		}
+	}
+
+	private void handleResponse(DNSResponse response) {
 	}
 
 }

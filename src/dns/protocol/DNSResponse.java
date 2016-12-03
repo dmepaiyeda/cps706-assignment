@@ -6,15 +6,21 @@ import dns.db.DBEntry;
  * Like the DNSRequest class, the DNSResponse object is created to provide cohesion between different parts
  * of the application when dealing with the mock dns protocol.
  */
-public class DNSResponse {
-
-	private final String NS_RECORD = "NS";
-	private final String CNAME_RECORD = "CNAME";
-	private final String A_RECORD = "A";
+public class DNSResponse extends DNSType {
 
 	private final String type;
 	private final String url;
 	private final String entry;
+
+	public static DNSResponse NoneDNSResponse(String url) {
+		return new DNSResponse(url);
+	}
+
+	private DNSResponse(String url) {
+		this.type = "NONE";
+		this.url = url;
+		this.entry = "NONE";
+	}
 
 	public DNSResponse(String[] data) throws Exception {
 		if(data.length < 4) {

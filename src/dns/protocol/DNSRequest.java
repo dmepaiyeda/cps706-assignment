@@ -7,7 +7,7 @@ import java.net.InetAddress;
  *
  * Helps keep things consistent between parts of the application.
  */
-public class DNSRequest {
+public class DNSRequest extends DNSType {
 
 	private final String url;
 	private final InetAddress senderIP;
