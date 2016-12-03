@@ -35,7 +35,4 @@ public class DBEntry {
 		return this.entry;
 	}
 
-	public String toDNSResponse() {
-		return this.getType() + " " + this.getEntry();
-	}
 }

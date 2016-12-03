@@ -1,5 +1,7 @@
 package dns.protocol;
 
+import java.net.InetAddress;
+
 /**
  * The DNSRequest object helps model how data is sent in this mock DNS protocol.
  *
@@ -7,9 +9,26 @@ package dns.protocol;
  */
 public class DNSRequest {
 
-	private String url;
+	private final String url;
+	private final InetAddress senderIP;
+	private final int senderPort;
 
-	public DNSRequest(String requestData) {
+	public DNSRequest(String[] requestData, InetAddress senderIP, int senderPort) {
+		this.url = requestData[1];
+		this.senderIP = senderIP;
+		this.senderPort = senderPort;
+	}
+
+	public String getUrl() {
+		return this.url;
+	}
+
+	public InetAddress getSenderIP() {
+		return this.senderIP;
+	}
+
+	public int getSenderPort() {
+		return this.senderPort;
 	}
 
 }

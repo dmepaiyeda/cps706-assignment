@@ -20,7 +20,7 @@ public class DNSDatabase {
 	}
 
 	public DBEntry findEntry(String url) {
-		return db.getOrDefault(url.toLowerCase(), new DBEntry("", "", ""));
+		return db.get(url.toLowerCase());
 	}
 
 }

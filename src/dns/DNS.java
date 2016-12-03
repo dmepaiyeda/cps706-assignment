@@ -2,7 +2,8 @@ package dns;
 
 import dns.db.DBEntry;
 import dns.db.DNSDatabase;
-import sun.net.spi.nameservice.dns.DNSNameService;
+import dns.protocol.DNSRequest;
+import dns.protocol.DNSResponse;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,8 +37,13 @@ public class DNS {
 
 	private static final int PACKET_DATA_LENGTH = 1500;
 
+	private final int DNS_MALFORMED = -1;
+	private final int DNS_REQUEST = 0;
+	private final int DNS_RESPONSE = 1;
+
 	private int port;
 	private DNSDatabase db;
+	private DatagramSocket datagramSocket;
 
 	/**
 	 * @param port The port to listen for requests from
@@ -68,9 +74,8 @@ public class DNS {
 	}
 
 	public void openConnection() throws SocketException {
-		DatagramSocket datagramSocket = new DatagramSocket(this.port);
+		datagramSocket = new DatagramSocket(this.port);
 		byte[] receiveData;
-		byte[] sendData = new byte[PACKET_DATA_LENGTH];
 		System.out.println("DNS datagram socket opened successfully, listening on port " + this.port);
 
 		while(true) {
@@ -81,26 +86,79 @@ public class DNS {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			String trimmedRequestString = new String(receivePacket.getData()).trim();
-			InetAddress senderIP = receivePacket.getAddress();
-			int senderPort = receivePacket.getPort();
-			System.out.printf("Received from %s:%d data: %s \n", senderIP, senderPort, trimmedRequestString);
 
-			String responseString = db.findEntry(trimmedRequestString).toDNSResponse();
-			resolveURL(trimmedRequestString, datagramSocket);
+			this.handleReceivedPacket(receivePacket);
 
-			DatagramPacket sendPacket = new DatagramPacket(
-				responseString.getBytes(),
-				responseString.getBytes().length,
-				senderIP,
-				senderPort);
-			try {
-				datagramSocket.send(sendPacket);
-				System.out.printf("Send to %s:%d data: %s\n", senderIP, senderPort, responseString);
-			} catch (IOException e) {
-				System.out.println("Error sending packet: " + e.getMessage());
-			}
 		}
+	}
+
+	private void handleReceivedPacket(DatagramPacket receivePacket) {
+		System.out.print("Packet received containing data -> ");
+		String[] data = this.parsedDataFrom(receivePacket.getData());
+		try {
+			switch (this.determinedReceivedPacketTypeFrom(data)) {
+				case DNS_REQUEST:
+					System.out.println(" -> recognized as dns request, handling...");
+					this.handleRequest(new DNSRequest(data, receivePacket.getAddress(), receivePacket.getPort()));
+					break;
+				case DNS_RESPONSE:
+					System.out.println(" -> recognized as dns response, handling...");
+					this.handleResponse(new DNSResponse(data));
+					break;
+				default:
+					System.out.println("Malformed DNS recognized, doing nothing.");
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private String[] parsedDataFrom(byte[] dataArray) {
+		String trimmedString = new String(dataArray).trim();
+		System.out.print(trimmedString);
+		return trimmedString.split(" ");
+	}
+
+	private int determinedReceivedPacketTypeFrom(String[] data) {
+		if(data == null || data.length < 2) {
+			return DNS_MALFORMED;
+		}
+
+		switch (data[0]) {
+			case "request":
+				return DNS_REQUEST;
+			case "response":
+				return DNS_RESPONSE;
+			default:
+				return DNS_MALFORMED;
+		}
+	}
+
+	private void handleRequest(DNSRequest request) {
+		DBEntry dnsRecord = db.findEntry(request.getUrl());
+		if(dnsRecord != null) {
+			this.respondToRequest(request, dnsRecord);
+			return;
+		} else {
+		}
+	}
+
+	private void respondToRequest(DNSRequest request, DBEntry withEntry) {
+		DNSResponse dnsResponse = new DNSResponse(withEntry);
+		byte[] dnsResponseData = dnsResponse.packetFormattedResponse();
+		DatagramPacket responsePacket = new DatagramPacket(
+				dnsResponseData,
+				dnsResponseData.length,
+				request.getSenderIP(),
+				request.getSenderPort());
+		try {
+			this.datagramSocket.send(responsePacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void handleResponse(DNSResponse response) {
 	}
 
 	public String resolveURL(String url, DatagramSocket socket) {
