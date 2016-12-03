@@ -69,7 +69,7 @@ public class Client {
 			// Lookup via dns
 			try {
 				host = dnsLookup(host);
-			} catch (SocketException e) {
+			} catch (IOException e) {
 				throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 			}
 		}
@@ -149,9 +149,41 @@ public class Client {
 	}
 
 	// todo: resolve urls to ips
-	public String dnsLookup(String url) throws SocketException {
-		if (url.equals("localhost")) return url;
-		throw new NotImplementedException();
+	public String dnsLookup(String url) throws IOException {
+		if (url.equals("localhost")) {
+			return url;
+		}
+
+
+		byte[] requestData = String.format("request %s", url).getBytes();
+
+		DatagramSocket datagramSocket = new DatagramSocket(MY_DNS_PORT);
+
+		DatagramPacket datagramPacket = new DatagramPacket(
+				requestData,
+				requestData.length,
+				InetAddress.getByName(LOCAL_DNS_IP),
+				DNS_PORT
+		);
+
+		datagramSocket.send(datagramPacket);
+		datagramSocket.setSoTimeout(1500);
+		DatagramPacket responsePacket = new DatagramPacket(
+				new byte[1500],
+				1500
+		);
+
+		datagramSocket.receive(responsePacket);
+		datagramSocket.close();
+
+		String trimmedString = new String(responsePacket.getData());
+		String[] tokens = trimmedString.split(" ");
+
+		if("A".equals(tokens[2].toUpperCase())) {
+			return tokens[3];
+		} else {
+			throw new IllegalStateException("Malformed response.");
+		}
 	}
 
 	private boolean isIp(String url) {
