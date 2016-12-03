@@ -22,9 +22,9 @@ public class DNSResponse extends DNSType {
 		this.entry = "NONE";
 	}
 
-	public DNSResponse(String type, String url, String entry) {
-		this.type = type;
+	public DNSResponse(String url, String type, String entry) {
 		this.url = url;
+		this.type = type;
 		this.entry = entry;
 	}
 
