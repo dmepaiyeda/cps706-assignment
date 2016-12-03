@@ -127,7 +127,6 @@ public class Client {
 					try {
 						message = readString(inBuff);
 					} catch (IOException e) {
-						e.printStackTrace();
 						message = MESSAGE_CANT_DISPLAY_CONTENT;
 					}
 					break;

@@ -74,7 +74,6 @@ public class Web {
 				out.flush();
 				out.close();
 			} catch (IOException e) {
-				e.printStackTrace(writer);
 				writer.println("ERROR - There was an error writing to a connection.");
 			}
 
