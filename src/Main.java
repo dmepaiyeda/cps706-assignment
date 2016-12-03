@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 /**
  * Created by Frank on 2016-11-27.
@@ -21,7 +22,7 @@ public class Main {
 				runClient(Integer.parseInt(args[1]));
 				break;
 			case COMMAND_WEB:
-				System.out.println("NOT IMPLEMENTED YET");
+				runWeb(Integer.parseInt(args[1]), Arrays.copyOfRange(args, 2, args.length));
 				break;
 			case COMMAND_DNS:
 				System.out.println("NOT IMPLEMENTED YET");
@@ -35,4 +36,10 @@ public class Main {
 		Client client = new Client(myUdpPort, WEB_PORT, DNS_PORT, LOCAL_DNS_IP);
 		client.run(System.in, System.out);
 	}
+
+	public static void runWeb(int port, String...files) throws IOException {
+		Web server = new Web(port, files);
+		server.run(System.out);
+	}
+
 }
