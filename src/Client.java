@@ -1,6 +1,7 @@
 import sun.nio.ch.IOUtil;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
@@ -114,6 +115,7 @@ public class Client {
 						pipe(inBuff, fOut);
 						fOut.flush();
 						fOut.close();
+						Desktop.getDesktop().open(file);
 					} catch (FileNotFoundException e) {
 						throw new IllegalStateException(MESSAGE_CANT_WRITE_FILE);
 					} catch (IOException e) {
