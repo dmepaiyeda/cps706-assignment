@@ -1,8 +1,10 @@
+import sun.nio.ch.IOUtil;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.awt.*;
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -14,7 +16,17 @@ public class Client {
 	public final int DNS_PORT;
 	public final int MY_DNS_PORT;
 	public final String LOCAL_DNS_IP;
-	public final String PROTOCOL_DELIM = "\r\n\r\n";
+
+	private static final String MESSAGE_PROMPT_URL = "Url: ";
+	private static final String MESSAGE_DOWNLOADED = "200 - File Downloaded.";
+	private static final String MESSAGE_404 = "404 - Not Found.";
+	private static final String MESSAGE_CANT_CONNECT = "ERROR - Could not connect to server.";
+	private static final String MESSAGE_CANT_WRITE_FILE = "ERROR - Could not write to file.";
+	private static final String MESSAGE_CANT_DOWNLOAD_FILE = "ERROR - Could not download file.";
+	private static final String MESSAGE_CANT_DISPLAY_CONTENT = "ERROR - Could not display content.";
+	private static final String MESSAGE_CANT_RESOLVE = "ERROR - Could not resolve url.";
+	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
+	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
 
 	public Client(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
 		WEB_PORT = webPort;
@@ -28,42 +40,117 @@ public class Client {
 		Scanner in = new Scanner(inputStream);
 		PrintStream out = new PrintStream(outputStream);
 		while(true) {
-			out.print("Url: ");
-			String url = in.next();
+			out.print(MESSAGE_PROMPT_URL);
+			URL url = toUrl(in.next());
 			try {
 				out.println(get(url));
-			} catch (IOException e) {
+			} catch (NotImplementedException e) {
+				out.println("Dns lookup not yet implemented...");
+			} catch (Exception e) {
 				out.println(e.getMessage());
 			}
+			out.flush();
 		}
 	}
 
-	public String get(String url) throws IOException {
-		URI uri;
+	private URL toUrl(String rawUrl) {
 		try {
-			uri = new URI(url.startsWith("http://") ? url : "http://" + url);
-		} catch(URISyntaxException e) {
-			throw new IllegalStateException("Invalid url provided.");
+			return new URL(rawUrl.startsWith("http://") ? rawUrl : "http://" + rawUrl);
+		} catch (MalformedURLException e) {
+			throw new IllegalStateException(MESSAGE_INVALID_URL);
 		}
-		int destPort = uri.getPort() != -1 ? uri.getPort() : WEB_PORT;
-		String host = uri.getHost();
+	}
+
+	public String get(URL url) {
+		int destPort = url.getPort() != -1 ? url.getPort() : WEB_PORT;
+		String host = url.getHost();
 
 		if (!isIp(host)) {
-			// need to resolve this via dns
-			host = dnsLookup(host);
+			// Lookup via dns
+			try {
+				host = dnsLookup(host);
+			} catch (SocketException e) {
+				throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
+			}
 		}
 
-		Socket socket = new Socket(host, destPort);
-		Scanner scanner = new Scanner(socket.getInputStream());
-		scanner.useDelimiter(PROTOCOL_DELIM);
+		Socket socket;
+		BufferedInputStream inBuff;
+		OutputStream cOut;
 
-		socket.getOutputStream().write(("get " + uri.getPath()).getBytes());
+		try {
+			socket = new Socket(host, destPort);
+			inBuff = new BufferedInputStream(socket.getInputStream());
+			cOut = socket.getOutputStream();
+		} catch (Exception e) {
+			throw new IllegalStateException(MESSAGE_CANT_CONNECT);
+		}
 
-		return scanner.next();
+		String path = url.getPath();
+		if (path.isEmpty()) path = "/";
+
+		try {
+			cOut.write(path.getBytes());
+			cOut.write(Web.PROTOCOL_DELIM.getBytes());
+		} catch (IOException e) {
+			throw new IllegalStateException(MESSAGE_CANT_CONNECT);
+		}
+
+		byte[] codeBuff = new byte[1];
+		int code = -1;
+		try {
+			inBuff.read(codeBuff, 0, 1);
+			code = codeBuff[0];
+		} catch (IOException e) {
+			code = -1;
+		}
+		String message;
+		switch (code) {
+			case Web.STATUS_OK:
+				if (!getExtension(url).equals(".txt")) {
+					try {
+						File file = new File(getLocalFileName(url));
+						file.delete();
+						FileOutputStream fOut = new FileOutputStream(file);
+						pipe(inBuff, fOut);
+						fOut.flush();
+						fOut.close();
+						Desktop.getDesktop().open(file);
+					} catch (FileNotFoundException e) {
+						throw new IllegalStateException(MESSAGE_CANT_WRITE_FILE);
+					} catch (IOException e) {
+						throw new IllegalStateException(MESSAGE_CANT_DOWNLOAD_FILE);
+					}
+					message = MESSAGE_DOWNLOADED;
+					break;
+				} else {
+					try {
+						message = readString(inBuff);
+					} catch (IOException e) {
+						message = MESSAGE_CANT_DISPLAY_CONTENT;
+					}
+					break;
+				}
+			case Web.STATUS_NOT_FOUND:
+				message = MESSAGE_404;
+				break;
+			default:
+				message = MESSAGE_UNKNOWN_ERROR;
+		}
+
+		try {
+			inBuff.close();
+			cOut.close();
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return message;
 	}
 
 	// todo: resolve urls to ips
 	public String dnsLookup(String url) throws SocketException {
+		if (url.equals("localhost")) return url;
 		throw new NotImplementedException();
 	}
 
@@ -77,5 +164,34 @@ public class Client {
 		return p.matcher(url).matches();
 	}
 
+	private String getLocalFileName(URL url) {
+		String name = url.getFile();
+		if (name.startsWith("/")) name = name.substring(1);
+		return "downloaded_"+name;
+	}
+
+	private String getExtension(URL url) {
+		String path = url.getFile();
+		int i = path.lastIndexOf(".");
+		if (i == -1) return ".txt";
+		return path.substring(i);
+	}
+
+	private void pipe(InputStream in, OutputStream out) throws IOException {
+		int bytesRead ;
+		byte[] buffer = new byte[1024];
+		while ((bytesRead = in.read(buffer)) > 0) {
+			out.write(buffer, 0, bytesRead);
+		}
+	}
+
+	private String readString(InputStream in) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		int count;
+		byte[] buffer = new byte[1024];
+		while((count = in.read(buffer)) > 0)
+			sb.append(new String(Arrays.copyOfRange(buffer, 0, count)));
+		return sb.toString();
+	}
 
 }

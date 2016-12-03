@@ -1,31 +1,43 @@
 import dns.DNS;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * Created by Frank on 2016-11-27.
  */
 public class Main {
-	public static final String LOCAL_DNS_IP = "localhost";
-	public static final int
-		WEB_PORT = 8080,
-		DNS_PORT = 5353;
+	private static final String CONFIG_FILE = "config.txt";
+	private static final String DEFAULT_LOCAL_DNS_IP = "localhost";
+	private static final int
+		DEFAULT_WEB_PORT = 8080,
+		DEFUALT_DNS_PORT = 5353;
 	private static final String
 		COMMAND_CLIENT = "client",
 		COMMAND_WEB = "web",
 		COMMAND_DNS = "dns";
 
+	private static int
+		dnsPort = DEFUALT_DNS_PORT,
+		webPort = DEFAULT_WEB_PORT;
+	static String localDnsIp = DEFAULT_LOCAL_DNS_IP;
+
 	public static void main(String[] args) throws IOException, URISyntaxException {
+
+		loadPortConfigurations(CONFIG_FILE);
 
 		switch(args[0].toLowerCase()) {
 			case COMMAND_CLIENT:
-				runClient(Integer.parseInt(args[1]));
+				runClient(Integer.parseInt(args[1]), webPort, dnsPort, localDnsIp);
 				break;
 			case COMMAND_WEB:
-				System.out.println("NOT IMPLEMENTED YET");
+				runWeb(Integer.parseInt(args[1]), Arrays.copyOfRange(args, 2, args.length));
 				break;
 			case COMMAND_DNS:
 				runDNS(Integer.parseInt(args[1]), args[2]);
@@ -35,8 +47,26 @@ public class Main {
 		}
 	}
 
-	public static void runClient(int myUdpPort) {
-		Client client = new Client(myUdpPort, WEB_PORT, DNS_PORT, LOCAL_DNS_IP);
+	private static void loadPortConfigurations(String filename) throws FileNotFoundException {
+		Scanner scanner = new Scanner(new FileInputStream(new File(filename)));
+		while(scanner.hasNext()) {
+			switch(scanner.next()) {
+				case "dns":
+					dnsPort = scanner.nextInt();
+					break;
+				case "web":
+					webPort = scanner.nextInt();
+					break;
+				case "localDnsIp":
+					localDnsIp = scanner.next();
+					break;
+			}
+		}
+		scanner.close();
+	}
+
+	private static void runClient(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
+		Client client = new Client(myUdpPort, webPort, dnsPort, localDnsIp);
 		client.run(System.in, System.out);
 	}
 
@@ -52,6 +82,11 @@ public class Main {
 			System.out.print("SocketException: ");
 			e.printStackTrace();
 		}
+	}
+
+	private static void runWeb(int port, String...files) throws IOException {
+		Web server = new Web(port, files);
+		server.run(System.out);
 	}
 
 }
