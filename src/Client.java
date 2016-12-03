@@ -22,6 +22,7 @@ public class Client {
 	private static final String MESSAGE_CANT_CONNECT = "ERROR - Could not connect to server.";
 	private static final String MESSAGE_CANT_WRITE_FILE = "ERROR - Could not write to file.";
 	private static final String MESSAGE_CANT_DOWNLOAD_FILE = "ERROR - Could not download file.";
+	private static final String MESSAGE_CANT_DISPLAY_CONTENT = "ERROR - Could not display content.";
 	private static final String MESSAGE_CANT_RESOLVE = "ERROR - Could not resolve url.";
 	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
 	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
@@ -110,16 +111,9 @@ public class Client {
 						File file = new File(getLocalFileName(url));
 						file.delete();
 						FileOutputStream fOut = new FileOutputStream(file);
-						/*
-						int count;
-						byte[] buff = new byte[1024];
-						while((count = inBuff.read(buff)) > 0)
-							fOut.write(buff, 0, count);
-							*/
 						pipe(inBuff, fOut);
 						fOut.flush();
 						fOut.close();
-						file = null;
 					} catch (FileNotFoundException e) {
 						throw new IllegalStateException(MESSAGE_CANT_WRITE_FILE);
 					} catch (IOException e) {
@@ -132,7 +126,7 @@ public class Client {
 						message = readString(inBuff);
 					} catch (IOException e) {
 						e.printStackTrace();
-						message="oops...";
+						message = MESSAGE_CANT_DISPLAY_CONTENT;
 					}
 					break;
 				}
@@ -144,6 +138,7 @@ public class Client {
 		}
 
 		try {
+			inBuff.close();
 			cOut.close();
 			socket.close();
 		} catch (IOException e) {

@@ -96,10 +96,9 @@ public class Web {
 	}
 
 	private void pipe(InputStream in, OutputStream out) throws IOException {
-		int read = 0;
+		int read;
 		byte[] buff = new byte[1024];
 		while((read = in.read(buff)) > 0) {
-			System.out.print(new String(buff));
 			out.write(buff, 0, read);
 		}
 	}
