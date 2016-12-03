@@ -4,6 +4,7 @@ import dns.db.DBEntry;
 import dns.db.DNSDatabase;
 import dns.protocol.DNSRequest;
 import dns.protocol.DNSResponse;
+import dns.protocol.DNSType;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -213,6 +214,33 @@ public class DNS {
 	}
 
 	private void handleReceivedResponse(DNSResponse response) {
+		if(this.dnsRequestTracker.containsRequest(response.getUrl())) {
+			switch (response.getType()) {
+				case "A":
+					forwardResponse(dnsRequestTracker.getRequest(response.getUrl()), response);
+					break;
+				case "CNAME":
+					this.resolveCNAME(dnsRequestTracker.getRequest(response.getUrl()), response);
+					break;
+			}
+		}
+	}
+
+	private void forwardResponse(DNSRequest request, DNSResponse response) {
+		DNSResponse dnsResponse = new DNSResponse(request.getUrl(), response.getType(), response.getEntry());
+		DatagramPacket forwardResponse = new DatagramPacket(
+				dnsResponse.packetFormattedResponse(),
+				dnsResponse.packetFormattedResponse().length,
+				request.getSenderIP(),
+				request.getSenderPort()
+		);
+
+		this.sendPacket(forwardResponse);
+		this.dnsRequestTracker.removeRequest(response.getUrl());
+	}
+
+	private void resolveCNAME(DNSRequest request, DNSResponse response) {
+
 	}
 
 

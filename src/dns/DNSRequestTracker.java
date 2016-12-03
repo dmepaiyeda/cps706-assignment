@@ -40,4 +40,16 @@ public class DNSRequestTracker {
 	public DNSRequest addRequest(String url, DNSRequest dnsRequest) {
 		return db.put(url, dnsRequest);
 	}
+
+	public DNSRequest getRequest(String url) {
+		return this.db.get(url);
+	}
+
+	public boolean containsRequest(String url) {
+		return this.getRequest(url) != null;
+	}
+
+	public DNSRequest removeRequest(String url) {
+		return this.db.remove(url);
+	}
 }

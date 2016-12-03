@@ -22,12 +22,18 @@ public class DNSResponse extends DNSType {
 		this.entry = "NONE";
 	}
 
+	public DNSResponse(String type, String url, String entry) {
+		this.type = type;
+		this.url = url;
+		this.entry = entry;
+	}
+
 	public DNSResponse(String[] data) throws Exception {
 		if(data.length < 4) {
 			throw new Exception("Given data is malformed");
 		}
-		this.url = data[1];
-		this.type = data[2];
+		this.url = data[1].toLowerCase();
+		this.type = data[2].toUpperCase();
 		this.entry = data[3];
 	}
 
@@ -40,5 +46,17 @@ public class DNSResponse extends DNSType {
 	public byte[] packetFormattedResponse() {
 		String response = "response " + this.url + " " + this.type + " " + this.entry;
 		return response.getBytes();
+	}
+
+	public String getType() {
+		return this.type;
+	}
+
+	public String getUrl() {
+		return this.url;
+	}
+
+	public String getEntry() {
+		return this.getEntry();
 	}
 }
