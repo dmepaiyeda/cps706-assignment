@@ -12,7 +12,7 @@ import java.util.StringTokenizer;
  * Uses a UDP socket to listen for requests, and responds with the requested information.
  *
  * Requests are made in the form [URL]
- * Responses are made in the form [TYPE] [URL] (one record per line). Ex. A hisCinema.com
+ * Responses are made in the form [TYPE] [URL] Ex. A hisCinema.com
  *
  * Records are stored in the db text file in the form [url] [type] [entry]
  * The full URL is stored for simplicity.
