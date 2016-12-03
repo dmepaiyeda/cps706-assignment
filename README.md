@@ -19,6 +19,8 @@ The application contains multiple sub-commands for each component of the project
 
 ```java Main <client|dns|web> <port> [config.txt[config2.txt[...]]]```
 
+**NOTE:** Default port configurations are loaded from `config.txt`. All outgoing requests are sent to the default ports.
+
 - **client | dns | web*** are each a different application; the client, dns server, and web servers respectively.
 - **port** is the port which the server should run on
 - **config files** vary depending on the command that is used:
