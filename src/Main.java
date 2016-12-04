@@ -71,17 +71,8 @@ public class Main {
 	}
 
 	private static void runDNS(int port, String databaseFile) {
-		System.out.println("DNS selected.");
-		try {
-			DNS dns = new DNS(port, databaseFile);
-			System.out.println("DNS object created successfully.");
-			dns.openConnection();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (SocketException e) {
-			System.out.print("SocketException: ");
-			e.printStackTrace();
-		}
+		NewDns dns = new NewDns(port, databaseFile);
+		dns.run(System.out);
 	}
 
 	private static void runWeb(int port, String...files) throws IOException {

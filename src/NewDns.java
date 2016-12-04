@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.net.*;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Scanner;
 
 /**
  * Created by Frank on 2016-12-03.
@@ -29,6 +30,31 @@ public class NewDns {
 	public NewDns(int port, HashMap<String, HashMap<String, String>> records) {
 		PORT = port;
 		this.records = records;
+	}
+
+	public NewDns(int port, String filename) {
+		PORT = port;
+		records = readRecordsFromFile(filename);
+		System.out.println("Loaded files: " + records);
+	}
+
+	HashMap<String, HashMap<String, String>> readRecordsFromFile(String filename) {
+		HashMap<String, HashMap<String, String>> records = new HashMap<>();
+		records.put(DNS_TYPE_A, new HashMap<>());
+		records.put(DNS_TYPE_CNAME, new HashMap<>());
+		records.put(DNS_TYPE_NS, new HashMap<>());
+
+		Scanner scanner = new Scanner(filename);
+		while (scanner.hasNextLine()) {
+			String
+				key = scanner.next(),
+				type = scanner.next(),
+				value = scanner.next();
+			if (records.containsKey(type))
+				records.get(type).put(key, value);
+		}
+		scanner.close();
+		return records;
 	}
 
 	public void run(OutputStream out) {
@@ -158,7 +184,6 @@ public class NewDns {
 
 	String[] localUrlLookup(String url) {
 		String ns = getNsDomain(url);
-		System.out.printf("NS: %s\n", ns);
 		if (records.get(DNS_TYPE_A).containsKey(url)) {
 			return new String[]{DNS_TYPE_A, records.get(DNS_TYPE_A).get(url)};
 		}else if (records.get(DNS_TYPE_CNAME).containsKey(url)) {
