@@ -1,5 +1,3 @@
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.awt.*;
 import java.io.*;
 import java.net.*;
@@ -41,13 +39,9 @@ public class Client {
 		while(true) {
 			out.print(MESSAGE_PROMPT_URL);
 			URL url = toUrl(in.next());
-			try {
-				out.println(get(url));
-			} catch (NotImplementedException e) {
-				out.println("Dns lookup not yet implemented...");
-			} catch (Exception e) {
-				out.println(e.getMessage());
-			}
+
+			out.println(get(url));
+
 			out.flush();
 		}
 	}
