@@ -16,6 +16,7 @@ public class Dns {
 		DNS_RESPONSE = 1,
 		DNS_REQUEST = 2;
 	private final static String
+		DNS_TYPE_V = "V",
 		DNS_TYPE_A = "A",
 		DNS_TYPE_CNAME = "CNAME",
 		DNS_TYPE_NS = "NS",
@@ -38,6 +39,7 @@ public class Dns {
 	}
 	private HashMap<String, HashMap<String, String>> readRecordsFromFile(String filename) throws FileNotFoundException {
 		HashMap<String, HashMap<String, String>> records = new HashMap<>();
+		records.put(DNS_TYPE_V, new HashMap<>());
 		records.put(DNS_TYPE_A, new HashMap<>());
 		records.put(DNS_TYPE_CNAME, new HashMap<>());
 		records.put(DNS_TYPE_NS, new HashMap<>());
@@ -83,7 +85,7 @@ public class Dns {
 					break;
 				case DNS_RESPONSE:
 					System.out.printf("Got a response for: %s\n", parseUrl(BUFF));
-					handleResponse(parseUrl(BUFF), parseValue(BUFF), socket);
+					handleResponse(parseUrl(BUFF), parseType(BUFF), parseValue(BUFF), socket);
 					break;
 
 			}
@@ -116,9 +118,10 @@ public class Dns {
 		}
 
 		switch (result[0]) {
+			case DNS_TYPE_V:
 			case DNS_TYPE_A:
 				System.out.printf("%s -A-> %s\n", requestedUrl, result[1]);
-				sendResponse(originalUrlRequest, DNS_TYPE_A, result[1], requestIp, requestPort, socket);
+				sendResponse(originalUrlRequest, result[0], result[1], requestIp, requestPort, socket);
 				break;
 			case DNS_TYPE_CNAME:
 				System.out.printf("%s -CNAME-> %s\n", requestedUrl, result[1]);
@@ -143,7 +146,7 @@ public class Dns {
 		}
 	}
 
-	private void handleResponse(String requestedUrl, String responseValue, DatagramSocket socket) {
+	private void handleResponse(String requestedUrl, String responseType, String responseValue, DatagramSocket socket) {
 		String requestRecord = requests.remove(requestedUrl);
 		if (requestRecord == null) return;
 		final String[] requestRecordTokens = requestRecord.split(":");
@@ -152,9 +155,10 @@ public class Dns {
 			requestIp = requestRecordTokens[1];
 		final int requestPort = Integer.parseInt(requestRecordTokens[2]);
 
-		switch (responseValue) {
+		switch (responseType) {
+			case DNS_TYPE_V:
 			case DNS_TYPE_A:
-				sendResponse(originalUrlRequest, DNS_TYPE_A, responseValue, requestIp, requestPort, socket);
+				sendResponse(originalUrlRequest, responseValue, responseValue, requestIp, requestPort, socket);
 				break;
 			default:
 				processRequest(responseValue, requestRecord, socket);
@@ -166,6 +170,8 @@ public class Dns {
 		String ns = getNsDomain(url);
 		if (records.get(DNS_TYPE_A).containsKey(url)) {
 			return new String[]{DNS_TYPE_A, records.get(DNS_TYPE_A).get(url)};
+		} else if (records.get(DNS_TYPE_V).containsKey(url)) {
+				return new String[]{DNS_TYPE_V, records.get(DNS_TYPE_V).get(url)};
 		} else if (records.get(DNS_TYPE_CNAME).containsKey(url)) {
 			return new String[]{DNS_TYPE_CNAME, records.get(DNS_TYPE_CNAME).get(url)};
 		} else if (ns != null) {
