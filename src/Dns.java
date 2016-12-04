@@ -34,6 +34,7 @@ public class Dns {
 	Dns(int port, String filename) throws FileNotFoundException {
 		PORT = port;
 		records = readRecordsFromFile(filename);
+		System.out.println("Loaded files: " + records);
 	}
 	private HashMap<String, HashMap<String, String>> readRecordsFromFile(String filename) throws FileNotFoundException {
 		HashMap<String, HashMap<String, String>> records = new HashMap<>();
@@ -54,14 +55,13 @@ public class Dns {
 		return records;
 	}
 
-	void run(OutputStream out) {
-		PrintWriter writer = new PrintWriter(out);
+	void run() {
 		DatagramSocket socket;
 
 		try {
 			socket = new DatagramSocket(PORT);
-			writer.printf("Server started on port: %d\n", PORT);
-			writer.flush();
+			System.out.printf("Server started on port: %d\n", PORT);
+			System.out.flush();
 		} catch (SocketException e) {
 			throw new IllegalStateException("ERROR - Could not open socket.");
 		}
@@ -73,20 +73,20 @@ public class Dns {
 				socket.receive(receivedPacket);
 			} catch (IOException e) {
 				e.printStackTrace();
-				throw new IllegalStateException("ERROR - Could not recieve packet.");
+				throw new IllegalStateException("ERROR - Could not receive packet.");
 			}
 
 			switch (BUFF[0]) {
 				case DNS_REQUEST:
-					writer.printf("Got a request for: %s\n", parseUrl(BUFF));
+					System.out.printf("Got a request for: %s\n", parseUrl(BUFF));
 					handleRequest(parseUrl(BUFF), receivedPacket, socket);
 					break;
 				case DNS_RESPONSE:
-					writer.printf("Got a response for: %s\n", parseUrl(BUFF));
+					System.out.printf("Got a response for: %s\n", parseUrl(BUFF));
 					handleResponse(parseUrl(BUFF), parseValue(BUFF), socket);
 					break;
+
 			}
-			writer.flush();
 			Arrays.fill(BUFF, (byte) 0);
 		}
 	}
@@ -117,15 +117,18 @@ public class Dns {
 
 		switch (result[0]) {
 			case DNS_TYPE_A:
+				System.out.printf("%s -A-> %s\n", requestedUrl, result[1]);
 				sendResponse(originalUrlRequest, DNS_TYPE_A, result[1], requestIp, requestPort, socket);
 				break;
 			case DNS_TYPE_CNAME:
+				System.out.printf("%s -CNAME-> %s\n", requestedUrl, result[1]);
 				if (localUrlLookup(result[1]) != null)
 					processRequest(result[1], requestRecord, socket);
 				else
 					sendResponse(originalUrlRequest, DNS_TYPE_CNAME, result[1], requestIp, requestPort, socket);
 				break;
 			case DNS_TYPE_NS:
+				System.out.printf("%s -NS-> %s\n", requestedUrl, result[1]);
 				String nsIp = result[1];
 				int nsPort = PORT;
 				if (nsIp.contains(":")) {
@@ -134,6 +137,7 @@ public class Dns {
 					nsPort = Integer.parseInt(nsTokens[1]);
 				}
 				requests.put(requestedUrl, requestRecord);
+				System.out.printf("%s -NS-> %s\n", requestedUrl, result[1]);
 				sendRequest(requestedUrl, nsIp, nsPort, socket);
 				break;
 		}
@@ -180,6 +184,7 @@ public class Dns {
 	}
 
 	private void sendRequest(String url, String destIp, int destPort, DatagramSocket socket) {
+		System.out.printf("Sending request for %s%n", url);
 		try {
 			socket.send(createRequest(url, destIp, destPort));
 		} catch (IOException e) {
@@ -188,6 +193,7 @@ public class Dns {
 	}
 
 	private void sendResponse(String url, String type, String value, String destIp, int destPort, DatagramSocket socket) {
+		System.out.printf("Sending responce for %s%n", url);
 		try {
 			socket.send(createResponse(url, type, value, destIp, destPort));
 		} catch (IOException e) {

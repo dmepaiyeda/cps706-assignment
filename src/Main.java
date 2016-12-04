@@ -38,7 +38,7 @@ public class Main {
 				runDNS(dnsPort, args[1]);
 				break;
 			default:
-				System.out.println("WRONG! Usage: app <client|dns|server> <port> [configFile]");
+				System.out.println("WRONG! Usage: app <client|dns|server> <configFile1.txt[...]>");
 		}
 	}
 
@@ -69,7 +69,8 @@ public class Main {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		dns.run(System.out);
+		if (dns != null)
+			dns.run();
 	}
 
 	private static void runWeb(int port, String...files) throws IOException {
