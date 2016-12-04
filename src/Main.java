@@ -11,7 +11,6 @@ import java.util.Scanner;
  */
 public class Main {
 	private static final String CONFIG_FILE = "config.txt";
-	private static final String DEFAULT_LOCAL_DNS_IP = "localhost";
 	private static final int
 		DEFAULT_WEB_PORT = 8080,
 		DEFUALT_DNS_PORT = 5353;
@@ -23,7 +22,6 @@ public class Main {
 	private static int
 		dnsPort = DEFUALT_DNS_PORT,
 		webPort = DEFAULT_WEB_PORT;
-	static String localDnsIp = DEFAULT_LOCAL_DNS_IP;
 
 	public static void main(String[] args) throws IOException, URISyntaxException {
 
@@ -31,7 +29,7 @@ public class Main {
 
 		switch(args[0].toLowerCase()) {
 			case COMMAND_CLIENT:
-				runClient(Integer.parseInt(args[1]), webPort, dnsPort, localDnsIp);
+				runClient(webPort, dnsPort, args[0]);
 				break;
 			case COMMAND_WEB:
 				runWeb(Integer.parseInt(args[1]), Arrays.copyOfRange(args, 2, args.length));
@@ -54,16 +52,13 @@ public class Main {
 				case "web":
 					webPort = scanner.nextInt();
 					break;
-				case "localDnsIp":
-					localDnsIp = scanner.next();
-					break;
 			}
 		}
 		scanner.close();
 	}
 
-	private static void runClient(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
-		Client client = new Client(myUdpPort, webPort, dnsPort, localDnsIp);
+	private static void runClient(int webPort, int dnsPort, String localDnsIp) {
+		Client client = new Client(webPort, dnsPort, localDnsIp);
 		client.run(System.in, System.out);
 	}
 

@@ -27,10 +27,10 @@ public class Client {
 	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
 	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
 
-	public Client(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
+	public Client(int webPort, int dnsPort, String localDnsIp) {
 		WEB_PORT = webPort;
 		DNS_PORT = dnsPort;
-		MY_DNS_PORT = myUdpPort;
+		MY_DNS_PORT = dnsPort;
 		LOCAL_DNS_IP = localDnsIp;
 
 	}
