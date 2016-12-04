@@ -1,6 +1,4 @@
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,20 +30,20 @@ public class NewDns {
 		this.records = records;
 	}
 
-	public NewDns(int port, String filename) {
+	public NewDns(int port, String filename) throws FileNotFoundException {
 		PORT = port;
 		records = readRecordsFromFile(filename);
 		System.out.println("Loaded files: " + records);
 	}
 
-	HashMap<String, HashMap<String, String>> readRecordsFromFile(String filename) {
+	HashMap<String, HashMap<String, String>> readRecordsFromFile(String filename) throws FileNotFoundException {
 		HashMap<String, HashMap<String, String>> records = new HashMap<>();
 		records.put(DNS_TYPE_A, new HashMap<>());
 		records.put(DNS_TYPE_CNAME, new HashMap<>());
 		records.put(DNS_TYPE_NS, new HashMap<>());
 
-		Scanner scanner = new Scanner(filename);
-		while (scanner.hasNextLine()) {
+		Scanner scanner = new Scanner(new File(filename));
+		while (scanner.hasNext()) {
 			String
 				key = scanner.next(),
 				type = scanner.next(),

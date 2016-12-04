@@ -43,7 +43,7 @@ public class Main {
 				runDNS(Integer.parseInt(args[1]), args[2]);
 				break;
 			default:
-				System.out.println("WRONG! Ussage: app <client|dns|server> <port> [configFile]");
+				System.out.println("WRONG! Usage: app <client|dns|server> <port> [configFile]");
 		}
 	}
 
@@ -71,7 +71,12 @@ public class Main {
 	}
 
 	private static void runDNS(int port, String databaseFile) {
-		NewDns dns = new NewDns(port, databaseFile);
+		NewDns dns = null;
+		try {
+			dns = new NewDns(port, databaseFile);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		dns.run(System.out);
 	}
 
