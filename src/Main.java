@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
+ * The application entry point. Provides some cli, and dynamic config file features.
  * Created by Frank on 2016-11-27.
  */
 public class Main {

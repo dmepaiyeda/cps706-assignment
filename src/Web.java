@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
+ * A Web server that hosts content.
  * Created by Frank on 2016-12-02.
  */
 public class Web {
+	/**  */
 	public static final byte
 		STATUS_OK = (byte) 200,
 		STATUS_NOT_FOUND = (byte) 404;
@@ -22,13 +24,17 @@ public class Web {
 		LOCAL_PORT = port;
 	}
 
+	/**
+	 * Starts the server and enters a connection accepting loop. This method never returns.
+	 * @param msgOut Output to write log messages to.
+	 */
 	public void run(OutputStream msgOut) {
 		final PrintWriter writer = new PrintWriter(msgOut);
 		ServerSocket sSocket;
 
 		writer.printf("Starting up server with content: %s\n", Arrays.toString(FILES));
 		writer.flush();
-		try {
+		try { // Open the socket
 			sSocket = new ServerSocket(LOCAL_PORT);
 		} catch (IOException e) {
 			writer.printf("Failed to start server on port %d\n", LOCAL_PORT);
@@ -80,12 +86,23 @@ public class Web {
 		}
 	}
 
+	/**
+	 * Checks to see if this server has the requested file.
+	 * @param file Name of the requested file.
+	 * @return True if the server has the file available, false otherwise.
+	 */
 	private boolean containsFile(String file) {
 		String r = file.startsWith("/") ? file.substring(1) : file;
 		for (String s : FILES) if (s.equals(r)) return true;
 		return false;
 	}
 
+	/**
+	 * Pipes a file into an output stream.
+	 * @param out Stream to pipe file to.
+	 * @param filename Name of file to stream.
+	 * @throws IOException Throws if something happens while streaming or loading the file.
+	 */
 	public void readContent(OutputStream out, String filename) throws IOException {
 		if (filename.equals("/")) filename = "index.txt";
 		if (filename.startsWith("/")) filename = filename.substring(1);
@@ -95,6 +112,12 @@ public class Web {
 		fOs.close();
 	}
 
+	/**
+	 * Connects an input to an output stream.
+	 * @param in Input stream that pipes...
+	 * @param out ...directly to the output stream.
+	 * @throws IOException Thows if there was an exception reading or writing to streams.
+	 */
 	private void pipe(InputStream in, OutputStream out) throws IOException {
 		int read;
 		byte[] buff = new byte[1024];
