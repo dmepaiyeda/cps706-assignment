@@ -23,7 +23,7 @@ public class Client {
 	private static final String MESSAGE_CANT_DISPLAY_CONTENT = "ERROR - Could not display content.";
 	private static final String MESSAGE_CANT_RESOLVE = "ERROR - Could not resolve url.";
 	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
-	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
+	private static final String MESSAGE_UNKNOWN_ERROR = "ERROR - Server could not be contacted.";
 
 	public Client(int webPort, int dnsPort, String localDnsIp) {
 		WEB_PORT = webPort;

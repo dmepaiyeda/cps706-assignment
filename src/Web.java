@@ -65,7 +65,7 @@ public class Web {
 					readContent(out, filename);
 				} else {
 					writer.printf("404 - Requested file: %s\n", filename);
-					out.write((""+STATUS_NOT_FOUND).getBytes());
+					out.write(new byte[]{STATUS_NOT_FOUND});
 				}
 				out.flush();
 				out.close();
