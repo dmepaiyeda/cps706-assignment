@@ -1,10 +1,7 @@
-import dns.DNS;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -43,7 +40,7 @@ public class Main {
 				runDNS(Integer.parseInt(args[1]), args[2]);
 				break;
 			default:
-				System.out.println("WRONG! Ussage: app <client|dns|server> <port> [configFile]");
+				System.out.println("WRONG! Usage: app <client|dns|server> <port> [configFile]");
 		}
 	}
 
@@ -71,17 +68,13 @@ public class Main {
 	}
 
 	private static void runDNS(int port, String databaseFile) {
-		System.out.println("DNS selected.");
+		Dns dns = null;
 		try {
-			DNS dns = new DNS(port, databaseFile);
-			System.out.println("DNS object created successfully.");
-			dns.openConnection();
+			dns = new Dns(port, databaseFile);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		} catch (SocketException e) {
-			System.out.print("SocketException: ");
-			e.printStackTrace();
 		}
+		dns.run(System.out);
 	}
 
 	private static void runWeb(int port, String...files) throws IOException {

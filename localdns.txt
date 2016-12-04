@@ -1,0 +1,4 @@
+his.com A localhost
+her.ca A localhost
+his.com NS localhost
+her.ca NS localhost

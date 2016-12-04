@@ -1,4 +1,3 @@
-import sun.nio.ch.IOUtil;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.awt.*;
@@ -148,42 +147,16 @@ public class Client {
 		return message;
 	}
 
-	// todo: resolve urls to ips
-	public String dnsLookup(String url) throws IOException {
+	String dnsLookup(String url) throws IOException {
 		if (url.equals("localhost")) {
 			return url;
 		}
 
+		String[] tokens = Dns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
 
-		byte[] requestData = String.format("request %s", url).getBytes();
-
-		DatagramSocket datagramSocket = new DatagramSocket(MY_DNS_PORT);
-
-		DatagramPacket datagramPacket = new DatagramPacket(
-				requestData,
-				requestData.length,
-				InetAddress.getByName(LOCAL_DNS_IP),
-				DNS_PORT
-		);
-
-		datagramSocket.send(datagramPacket);
-		datagramSocket.setSoTimeout(1500);
-		DatagramPacket responsePacket = new DatagramPacket(
-				new byte[1500],
-				1500
-		);
-
-		datagramSocket.receive(responsePacket);
-		datagramSocket.close();
-
-		String trimmedString = new String(responsePacket.getData());
-		String[] tokens = trimmedString.split(" ");
-
-		if("A".equals(tokens[2].toUpperCase())) {
-			return tokens[3];
-		} else {
-			throw new IllegalStateException("Malformed response.");
-		}
+		if (tokens != null && tokens[0].equals(Dns.DNS_TYPE_A)) {
+			return tokens[1];
+		} else throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 	}
 
 	private boolean isIp(String url) {
