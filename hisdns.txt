@@ -1,1 +1,1 @@
-video.hiscinema.com CNAME video.hercdn.ca
+video.hiscinema.com V video.hercdn.ca
