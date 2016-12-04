@@ -35,7 +35,7 @@ public class Main {
 				runWeb(webPort, Arrays.copyOfRange(args, 1, args.length));
 				break;
 			case COMMAND_DNS:
-				runDNS(dnsPort, args[2]);
+				runDNS(dnsPort, args[1]);
 				break;
 			default:
 				System.out.println("WRONG! Usage: app <client|dns|server> <port> [configFile]");
