@@ -155,6 +155,7 @@ public class Client {
 		String[] tokens = Dns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
 
 		if (tokens != null && tokens[0].equals(Dns.DNS_TYPE_A)) {
+			System.out.println(Arrays.toString(tokens));
 			return tokens[1];
 		} else throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 	}

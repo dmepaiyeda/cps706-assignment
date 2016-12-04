@@ -97,6 +97,7 @@ public class Dns {
 	}
 
 	void handleRequest(String requestedUrl, DatagramPacket requestPacket, DatagramSocket socket) {
+		System.out.println("HandleRequest looking up: " + requestedUrl);
 		String requestIp = requestPacket.getAddress().toString();
 		if (requestIp.startsWith("/")) requestIp = requestIp.substring(1);
 		handleRequest(
@@ -138,7 +139,15 @@ public class Dns {
 				break;
 			case DNS_TYPE_CNAME:
 				System.out.printf("%s -CNAME-> %s\n", requestedUrl, result[1]);
-				handleRequest(result[1], requestRecord, socket);
+				if (localUrlLookup(result[1]) != null)
+					handleRequest(result[1], requestRecord, socket);
+				else
+					try {
+						socket.send(createResponse(originalUrlRequest, DNS_TYPE_CNAME, result[1], requestIp, requestPort));
+					} catch (IOException e) {
+						e.printStackTrace();
+						// TODO: make it graceful
+					};
 				break;
 			case DNS_TYPE_NS:
 				String nsIp = result[1];
@@ -162,14 +171,29 @@ public class Dns {
 
 	void handleResponse(String requestedUrl, String responseType, String responseValue, DatagramSocket socket) {
 		String requestRecord = requests.remove(requestedUrl);
-		switch (responseType) {
-			case DNS_TYPE_A:
-				final String[] requestRecordTokens = requestRecord.split(":");
+		if (requestRecord == null) return;
+		final String[] requestRecordTokens = requestRecord.split(":");
 				final String
 					originalUrlRequest = requestRecordTokens[0],
 					requestIp = requestRecordTokens[1];
 				final int requestPort = Integer.parseInt(requestRecordTokens[2]);
-
+				
+				switch(responseValue) {
+				case DNS_TYPE_A:
+					try {
+						socket.send(createResponse(originalUrlRequest, DNS_TYPE_A, responseValue, requestIp, requestPort));
+					} catch (IOException e) {
+						e.printStackTrace();
+						// TODO handle this with grace
+					}
+					break;
+				default:
+					handleRequest(responseValue, requestRecord, socket);
+					break;
+				}
+			/*	
+		switch (responseType) {
+			case DNS_TYPE_A:
 				try {
 					socket.send(createResponse(originalUrlRequest, DNS_TYPE_A, responseValue, requestIp, requestPort));
 				} catch (IOException e) {
@@ -178,9 +202,55 @@ public class Dns {
 				}
 				break;
 			case DNS_TYPE_CNAME:
-				handleRequest(responseValue, requestRecord, socket);
+				String[] result = localUrlLookup(responseValue);
+				if (result != null) {
+					switch(result[0]) {
+					case DNS_TYPE_A:
+						break;
+					case DNS_TYPE_CNAME:
+						break;
+					case DNS_TYPE_NS:
+						break;
+					}
+					System.out.println("recurse "+Arrays.toString(result));
+
+					requests.put(requestedUrl, requestRecord);
+					if (result[0].equals(DNS_TYPE_NS)) {
+						
+						String nsIp = result[1];
+						int nsPort = PORT;
+						if (nsIp.contains(":")) {
+							String[] nsTokens = nsIp.split(":");
+							nsIp = nsTokens[0];
+							nsPort = Integer.parseInt(nsTokens[1]);
+						}
+						requests.put(requestedUrl, requestRecord);
+						System.out.printf("%s -NS-> %s\n", requestedUrl, result[1]);
+						
+						
+						try {
+							socket.send(createRequest(responseValue, nsIp, nsPort));
+						} catch (IOException e) {
+							e.printStackTrace();
+							// TODO: make it graceful
+						}
+					} else {
+						handleResponse(result[1], result[0], requestRecord, socket);
+					}
+				} else {
+								System.out.println("sendback loool");
+
+					try {
+						socket.send(createResponse(originalUrlRequest, DNS_TYPE_CNAME, responseValue, requestIp, requestPort));
+					} catch (IOException e) {
+						e.printStackTrace();
+						// TODO handle this with grace
+					}
+				}
 				break;
 		}
+		*/
+		System.out.printf("Recieved %s (%s)\n", responseValue, responseType);
 	}
 
 	String[] localUrlLookup(String url) {
@@ -267,8 +337,13 @@ public class Dns {
 
 		final byte[] BUFF = new byte[PACKET_SIZE];
 		DatagramPacket packet = new DatagramPacket(BUFF, BUFF.length);
-		socket.receive(packet);
+		try {
+			socket.receive(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		socket.close();
+		
 
 		// TODO: handle null responces
 		return new String[]{parseType(BUFF), parseValue(BUFF)};
