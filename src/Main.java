@@ -1,10 +1,7 @@
-import dns.DNS;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -71,9 +68,9 @@ public class Main {
 	}
 
 	private static void runDNS(int port, String databaseFile) {
-		NewDns dns = null;
+		Dns dns = null;
 		try {
-			dns = new NewDns(port, databaseFile);
+			dns = new Dns(port, databaseFile);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

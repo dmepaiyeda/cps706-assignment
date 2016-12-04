@@ -7,7 +7,7 @@ import java.util.Scanner;
 /**
  * Created by Frank on 2016-12-03.
  */
-public class NewDns {
+public class Dns {
 
 	static final int PACKET_SIZE = 1026;
 	static final byte
@@ -25,12 +25,12 @@ public class NewDns {
 	HashMap<String, String> requests = new HashMap<>();
 
 
-	public NewDns(int port, HashMap<String, HashMap<String, String>> records) {
+	public Dns(int port, HashMap<String, HashMap<String, String>> records) {
 		PORT = port;
 		this.records = records;
 	}
 
-	public NewDns(int port, String filename) throws FileNotFoundException {
+	public Dns(int port, String filename) throws FileNotFoundException {
 		PORT = port;
 		records = readRecordsFromFile(filename);
 		System.out.println("Loaded files: " + records);

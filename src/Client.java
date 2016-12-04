@@ -1,4 +1,3 @@
-import sun.nio.ch.IOUtil;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.awt.*;
@@ -153,9 +152,9 @@ public class Client {
 			return url;
 		}
 
-		String[] tokens = NewDns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
+		String[] tokens = Dns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
 
-		if (tokens != null && tokens[0].equals(NewDns.DNS_TYPE_A)) {
+		if (tokens != null && tokens[0].equals(Dns.DNS_TYPE_A)) {
 			return tokens[1];
 		} else throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 	}
