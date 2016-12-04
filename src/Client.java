@@ -1,5 +1,3 @@
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.awt.*;
 import java.io.*;
 import java.net.*;
@@ -25,7 +23,7 @@ public class Client {
 	private static final String MESSAGE_CANT_DISPLAY_CONTENT = "ERROR - Could not display content.";
 	private static final String MESSAGE_CANT_RESOLVE = "ERROR - Could not resolve url.";
 	private static final String MESSAGE_INVALID_URL = "ERROR - The provided url is invalid.";
-	private static final String MESSAGE_UNKNOWN_ERROR = "An unknown error occurred.";
+	private static final String MESSAGE_UNKNOWN_ERROR = "ERROR - Server could not be contacted.";
 
 	public Client(int webPort, int dnsPort, String localDnsIp) {
 		WEB_PORT = webPort;
@@ -41,13 +39,9 @@ public class Client {
 		while(true) {
 			out.print(MESSAGE_PROMPT_URL);
 			URL url = toUrl(in.next());
-			try {
-				out.println(get(url));
-			} catch (NotImplementedException e) {
-				out.println("Dns lookup not yet implemented...");
-			} catch (Exception e) {
-				out.println(e.getMessage());
-			}
+
+			out.println(get(url));
+
 			out.flush();
 		}
 	}
@@ -154,8 +148,7 @@ public class Client {
 
 		String[] tokens = Dns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
 
-		if (tokens != null && tokens[0].equals(Dns.DNS_TYPE_A)) {
-			System.out.println(Arrays.toString(tokens));
+		if (tokens != null && (tokens[0].equals(Dns.DNS_TYPE_A))) {
 			return tokens[1];
 		} else throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 	}
