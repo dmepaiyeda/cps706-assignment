@@ -1,3 +1,5 @@
+import org.omg.CORBA.TIMEOUT;
+
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
@@ -10,6 +12,7 @@ import java.util.Scanner;
 public class Dns {
 
 	static final int PACKET_SIZE = 1026;
+	final static int REQUEST_TIMEOUT = 3000;
 	static final byte
 		DNS_RESPONSE = 1,
 		DNS_REQUEST = 2;
@@ -259,7 +262,7 @@ public class Dns {
 
 	static String[] request(String url, int myDnsPort, String destIp, int destPort) throws IOException {
 		DatagramSocket socket = new DatagramSocket(myDnsPort);
-		socket.setSoTimeout(1500); // TODO: make this a const
+		socket.setSoTimeout(REQUEST_TIMEOUT);
 		socket.send(createRequest(url, destIp, destPort));
 
 		final byte[] BUFF = new byte[PACKET_SIZE];

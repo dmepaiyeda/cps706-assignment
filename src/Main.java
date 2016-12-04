@@ -29,7 +29,7 @@ public class Main {
 
 		switch(args[0].toLowerCase()) {
 			case COMMAND_CLIENT:
-				runClient(webPort, dnsPort, args[0]);
+				runClient(webPort, dnsPort, args[1]);
 				break;
 			case COMMAND_WEB:
 				runWeb(webPort, Arrays.copyOfRange(args, 1, args.length));
