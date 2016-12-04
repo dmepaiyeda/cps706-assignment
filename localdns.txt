@@ -1,4 +1,6 @@
 hiscinema.com A 141.117.232.30
+www.hiscinema.com CNAME hiscinema.com
 hercdn.ca A 141.117.232.29
+www.hercdn.ca CNAME hercdn.ca
 hiscinema.com NS 141.117.232.30
 hercdn.ca NS 141.117.232.29

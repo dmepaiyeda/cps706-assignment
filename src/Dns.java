@@ -118,11 +118,11 @@ public class Dns {
 		}
 
 		switch (result[0]) {
-			case DNS_TYPE_V:
 			case DNS_TYPE_A:
 				System.out.printf("%s -A-> %s\n", requestedUrl, result[1]);
 				sendResponse(originalUrlRequest, result[0], result[1], requestIp, requestPort, socket);
 				break;
+			case DNS_TYPE_V:
 			case DNS_TYPE_CNAME:
 				System.out.printf("%s -CNAME-> %s\n", requestedUrl, result[1]);
 				if (localUrlLookup(result[1]) != null)
@@ -156,7 +156,6 @@ public class Dns {
 		final int requestPort = Integer.parseInt(requestRecordTokens[2]);
 
 		switch (responseType) {
-			case DNS_TYPE_V:
 			case DNS_TYPE_A:
 				sendResponse(originalUrlRequest, responseValue, responseValue, requestIp, requestPort, socket);
 				break;

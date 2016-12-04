@@ -148,7 +148,7 @@ public class Client {
 
 		String[] tokens = Dns.request(url, MY_DNS_PORT, LOCAL_DNS_IP, DNS_PORT);
 
-		if (tokens != null && (tokens[0].equals(Dns.DNS_TYPE_A) || tokens[0].equals(Dns.DNS_TYPE_V))) {
+		if (tokens != null && (tokens[0].equals(Dns.DNS_TYPE_A))) {
 			return tokens[1];
 		} else throw new IllegalStateException(MESSAGE_CANT_RESOLVE);
 	}
