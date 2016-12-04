@@ -11,7 +11,6 @@ import java.util.Scanner;
  */
 public class Main {
 	private static final String CONFIG_FILE = "config.txt";
-	private static final String DEFAULT_LOCAL_DNS_IP = "localhost";
 	private static final int
 		DEFAULT_WEB_PORT = 8080,
 		DEFUALT_DNS_PORT = 5353;
@@ -23,7 +22,6 @@ public class Main {
 	private static int
 		dnsPort = DEFUALT_DNS_PORT,
 		webPort = DEFAULT_WEB_PORT;
-	static String localDnsIp = DEFAULT_LOCAL_DNS_IP;
 
 	public static void main(String[] args) throws IOException, URISyntaxException {
 
@@ -31,16 +29,16 @@ public class Main {
 
 		switch(args[0].toLowerCase()) {
 			case COMMAND_CLIENT:
-				runClient(Integer.parseInt(args[1]), webPort, dnsPort, localDnsIp);
+				runClient(webPort, dnsPort, args[1]);
 				break;
 			case COMMAND_WEB:
-				runWeb(Integer.parseInt(args[1]), Arrays.copyOfRange(args, 2, args.length));
+				runWeb(webPort, Arrays.copyOfRange(args, 1, args.length));
 				break;
 			case COMMAND_DNS:
-				runDNS(Integer.parseInt(args[1]), args[2]);
+				runDNS(dnsPort, args[1]);
 				break;
 			default:
-				System.out.println("WRONG! Usage: app <client|dns|server> <port> [configFile]");
+				System.out.println("WRONG! Usage: app <client|dns|server> <configFile1.txt[...]>");
 		}
 	}
 
@@ -54,16 +52,13 @@ public class Main {
 				case "web":
 					webPort = scanner.nextInt();
 					break;
-				case "localDnsIp":
-					localDnsIp = scanner.next();
-					break;
 			}
 		}
 		scanner.close();
 	}
 
-	private static void runClient(int myUdpPort, int webPort, int dnsPort, String localDnsIp) {
-		Client client = new Client(myUdpPort, webPort, dnsPort, localDnsIp);
+	private static void runClient(int webPort, int dnsPort, String localDnsIp) {
+		Client client = new Client(webPort, dnsPort, localDnsIp);
 		client.run(System.in, System.out);
 	}
 
@@ -74,7 +69,8 @@ public class Main {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		dns.run(System.out);
+		if (dns != null)
+			dns.run();
 	}
 
 	private static void runWeb(int port, String...files) throws IOException {

@@ -1,1 +1,1 @@
-video.her.ca CNAME her.ca
+video.hercdn.ca CNAME hercdn.ca
