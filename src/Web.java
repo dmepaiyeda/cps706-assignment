@@ -66,11 +66,11 @@ public class Web {
 
 			try {
 				if (containsFile(filename)) {
-					writer.printf("200 - Requested file: %s\n", filename);
+					writer.printf("200 - %s Requested file: %s\n", socket.getInetAddress().toString(), filename);
 					out.write(new byte[]{STATUS_OK});
 					readContent(out, filename);
 				} else {
-					writer.printf("404 - Requested file: %s\n", filename);
+					writer.printf("404 - %s Requested file: %s\n", socket.getInetAddress().toString(), filename);
 					out.write(new byte[]{STATUS_NOT_FOUND});
 				}
 				out.flush();
