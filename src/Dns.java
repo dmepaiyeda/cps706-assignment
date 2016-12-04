@@ -15,7 +15,7 @@ public class Dns {
 	private static final byte
 		DNS_RESPONSE = 1,
 		DNS_REQUEST = 2;
-	private final static String
+	protected final static String
 		DNS_TYPE_V = "V",
 		DNS_TYPE_A = "A",
 		DNS_TYPE_CNAME = "CNAME",
