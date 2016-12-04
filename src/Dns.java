@@ -115,11 +115,11 @@ public class Dns {
 
 			switch (BUFF[0]) {
 				case DNS_REQUEST:
-					System.out.printf("\nGot a request for: %s\n", parseUrl(BUFF));
+					System.out.printf("\nGot a request for: %s from: %s\n", parseUrl(BUFF), receivedPacket.getAddress().toString());
 					handleRequest(parseUrl(BUFF), receivedPacket, socket);
 					break;
 				case DNS_RESPONSE:
-					System.out.printf("\nGot a response for: %s\n", parseUrl(BUFF));
+					System.out.printf("\nGot a response for: %s from: %s\n", parseUrl(BUFF), receivedPacket.getAddress().toString());
 					handleResponse(parseUrl(BUFF), parseType(BUFF), parseValue(BUFF), socket);
 					break;
 
@@ -271,7 +271,7 @@ public class Dns {
 	 * @param socket The destination socket.
 	 */
 	private void sendRequest(String url, String destIp, int destPort, DatagramSocket socket) {
-		System.out.printf("Sending request for %s%n", url);
+		System.out.printf("Sending request for: %s to: %s\n", url, destIp);
 		try {
 			socket.send(createRequest(url, destIp, destPort));
 		} catch (IOException e) {
@@ -289,7 +289,7 @@ public class Dns {
 	 * @param socket The socket to send the response over.
 	 */
 	private void sendResponse(String url, String type, String value, String destIp, int destPort, DatagramSocket socket) {
-		System.out.printf("Sending responce for %s%n", url);
+		System.out.printf("Sending response record: (%s, %s, %s) to: %s\n", url, value, type, destIp);
 		try {
 			socket.send(createResponse(url, type, value, destIp, destPort));
 		} catch (IOException e) {
